@@ -40,8 +40,8 @@ It issues short-lived **JWTs** for session-based access and supports **token ref
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/Vara-Lab/gasless-server-template.git
-cd Server-Template
+git clone https://github.com/Vara-Lab/token-gate-server.git
+cd token-gate-server
 ```
 
 ### 2. Install dependencies
