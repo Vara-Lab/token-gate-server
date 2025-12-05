@@ -35,7 +35,94 @@ It issues short-lived **JWTs** for session-based access and supports **token ref
 - **TypeScript**
 ---
 
-## 🚀 Getting Started
+## Quick Usage
+
+1. Request nonce
+
+```bash
+POST /auth/nonce
+```
+2. User signs message:
+
+```jsx
+Nonce: <nonce>
+Domain: domain
+ChainId: vara
+IssuedAt: <ISO>
+ExpiresIn: 10m
+```
+3. Verify signature → Receive JWT:
+
+```jsx
+POST /auth/verify
+{ address, message, signature }
+```
+Response:
+
+```jsx
+{ "jwt": "token" }
+```
+4. Use token for gated routes
+
+```jsx
+GET /entitlement
+Authorization: Bearer <jwt>
+```
+
+5. Refresh token
+
+```jsx
+POST /auth/refresh
+Authorization: Bearer <jwt>
+```
+## 🔒 Frontend Route Protection (React)
+
+Below is a simple `ProtectedRoute` setup to protect gated pages using the `/entitlement` endpoint.  
+It checks the stored JWT, verifies it with the backend, and blocks access if the user does not hold the required token balance.
+
+```ts
+import React from "react";
+import { Navigate, Outlet, useLocation } from "react-router-dom";
+
+const AUTH_API = import.meta.env.VITE_AUTH_API;
+
+async function checkEntitlement(jwt: string) {
+  const r = await fetch(`${AUTH_API}/entitlement`, {
+    headers: { Authorization: `Bearer ${jwt}` },
+  });
+  if (!r.ok) return null;
+  return (await r.json()) as { ok: boolean; hasAccess: boolean };
+}
+
+export function ProtectedRoute({ requireAccess = true }: { requireAccess?: boolean }) {
+  const loc = useLocation();
+  const [state, setState] = React.useState<"loading"|"ok"|"no-auth"|"no-access">("loading");
+
+  React.useEffect(() => {
+    const jwt = localStorage.getItem("auth_jwt");
+    if (!jwt) return setState("no-auth");
+    (async () => {
+      const ent = await checkEntitlement(jwt);
+      if (!ent?.ok) return setState("no-auth");
+      if (requireAccess && !ent.hasAccess) return setState("no-access");
+      setState("ok");
+    })();
+  }, [loc.pathname]);
+
+  if (state === "loading") return <div style={{padding:16}}>Verifying...</div>;
+  if (state === "no-auth") return <Navigate to="/subscription" replace state={{ from: loc }} />;
+  if (state === "no-access") return <Navigate to="/subscription" replace />;
+  return <Outlet />;
+}
+```
+Usage example:
+
+```ts
+<Route element={<ProtectedRoute requireAccess />}>
+  <Route path="/dashboard" element={<Dashboard />} />
+</Route>
+```
+🔐 Only users with a valid JWT and the required token balance can access gated routes.
 
 ### 1. Clone the repository
 
