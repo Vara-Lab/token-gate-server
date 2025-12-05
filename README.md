@@ -37,12 +37,12 @@ It issues short-lived **JWTs** for session-based access and supports **token ref
 
 ## Quick Usage
 
-1. Request nonce
+1. **Request nonce:**
 
 ```bash
 POST /auth/nonce
 ```
-2. User signs message:
+2. **User signs message:**
 
 ```jsx
 Nonce: <nonce>
@@ -51,25 +51,25 @@ ChainId: vara
 IssuedAt: <ISO>
 ExpiresIn: 10m
 ```
-3. Verify signature → Receive JWT:
+3. **Verify signature → Receive JWT:**
 
 ```jsx
 POST /auth/verify
 { address, message, signature }
 ```
-Response:
+**Response:**
 
 ```jsx
 { "jwt": "token" }
 ```
-4. Use token for gated routes
+4. **Use token for gated routes:**
 
 ```jsx
 GET /entitlement
 Authorization: Bearer <jwt>
 ```
 
-5. Refresh token
+5. **Refresh token:**
 
 ```jsx
 POST /auth/refresh
